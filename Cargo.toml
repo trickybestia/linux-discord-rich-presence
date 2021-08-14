@@ -1,0 +1,18 @@
+[package]
+name = "linux-discord-rich-presence"
+description = "Customize Discord Rich Presence with shell hooks."
+authors = ["trickybestia <trickybestia@gmail.com>"]
+version = "0.1.0"
+edition = "2018"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = 'abort'
+
+[dependencies]
+discord-rpc-client = "^0.3"
+clap = "3.0.0-beta.2"
+serde = { version = "^1.0", features = ["derive"] }
+serde_yaml = "^0.8"
+chrono = "^0.4"
