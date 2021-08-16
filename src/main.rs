@@ -50,11 +50,13 @@ struct Config {
     get_small_image_text: String,
 }
 
-fn read_config(path: &Path) -> Result<Config, Box<dyn Error>> {
-    let mut file = File::open(path)?;
-    let mut buffer = String::new();
-    file.read_to_string(&mut buffer)?;
-    Ok(serde_yaml::from_str::<Config>(buffer.as_str())?)
+impl Config {
+    fn load(path: &Path) -> Result<Config, Box<dyn Error>> {
+        let mut file = File::open(path)?;
+        let mut buffer = String::new();
+        file.read_to_string(&mut buffer)?;
+        Ok(serde_yaml::from_str::<Config>(buffer.as_str())?)
+    }
 }
 
 fn run_shell(code: &str) -> Option<String> {
@@ -82,7 +84,7 @@ fn main() {
     let args = Args::parse();
     let start_time = get_startup_time().timestamp() as u64;
 
-    match read_config(args.config.as_path()) {
+    match Config::load(args.config.as_path()) {
         Ok(config) => {
             let mut client = Client::new(config.rich_presence_application_id);
 
