@@ -64,8 +64,6 @@ async fn process_rich_presence(mut config_shell: ConfigShell) {
                 config_shell.update_delay().unwrap()
             );
 
-            drop(err);
-
             sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
         } else {
             info!("Connected to Discord!");
