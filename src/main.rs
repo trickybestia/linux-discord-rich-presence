@@ -55,56 +55,35 @@ async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEven
 async fn process_rich_presence(mut config_shell: ConfigShell) {
     let mut client =
         new_client(config_shell.application_id().unwrap().to_string().as_str()).unwrap();
+    let mut is_connected = false;
 
     loop {
-        if let Err(err) = client.connect() {
-            warn!(
-                "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
-                err,
-                config_shell.update_delay().unwrap()
-            );
-
-            sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
-        } else {
-            info!("Connected to Discord!");
-
-            break;
+        if !is_connected {
+            if let Err(err) = client.connect() {
+                warn!(
+                    "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
+                    err,
+                    config_shell.update_delay().unwrap()
+                );
+            } else {
+                is_connected = true;
+                info!("Connected to Discord!");
+            }
         }
-    }
 
-    loop {
-        let should_reconnect;
-
-        if let Err(err) = set_activity(&mut client, &mut config_shell) {
-            warn!(
-                "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
-                err,
-                config_shell.update_delay().unwrap()
-            );
-            should_reconnect = true;
-        } else {
-            should_reconnect = false;
+        if is_connected {
+            if let Err(err) = set_activity(&mut client, &mut config_shell) {
+                warn!(
+                    "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
+                    err,
+                    config_shell.update_delay().unwrap()
+                );
+                client.close().unwrap();
+                is_connected = false;
+            }
         }
 
         sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
-
-        if should_reconnect {
-            loop {
-                if let Err(err) = client.reconnect() {
-                    warn!(
-                        "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
-                        err,
-                        config_shell.update_delay().unwrap()
-                    );
-
-                    sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
-                } else {
-                    info!("Reconnected to Discord!");
-
-                    break;
-                }
-            }
-        }
     }
 }
 
