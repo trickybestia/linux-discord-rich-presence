@@ -22,8 +22,63 @@ mod shell;
 
 use clap::Clap;
 use config::ConfigShell;
-use discord_rpc_client::Client;
-use std::{path::PathBuf, thread::sleep, time::Duration};
+use discord_rich_presence::{
+    activity::{Activity, Assets, Timestamps},
+    new_client, DiscordIpc,
+};
+use log::{info, warn};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
+use std::{error::Error, path::PathBuf, thread::sleep, time::Duration};
+
+fn set_activity(
+    client: &mut impl DiscordIpc,
+    config_shell: &mut ConfigShell,
+) -> Result<(), Box<dyn Error>> {
+    let mut timestamps = Timestamps::new();
+    let mut assets = Assets::new();
+    let mut activity = Activity::new();
+
+    let state = config_shell.state();
+    let details = config_shell.details();
+    let large_image_key = config_shell.large_image_key();
+    let large_image_text = config_shell.large_image_text();
+    let small_image_key = config_shell.small_image_key();
+    let small_image_text = config_shell.small_image_text();
+    let start_timestamp = config_shell.start_timestamp();
+    let end_timestamp = config_shell.end_timestamp();
+
+    if let Some(state) = &state {
+        activity = activity.state(state.as_str());
+    }
+    if let Some(details) = &details {
+        activity = activity.details(details.as_str());
+    }
+    if let Some(large_image_key) = &large_image_key {
+        assets = assets.large_image(large_image_key.as_str());
+    }
+    if let Some(large_image_text) = &large_image_text {
+        assets = assets.large_text(large_image_text.as_str());
+    }
+    if let Some(small_image_key) = &small_image_key {
+        assets = assets.small_image(small_image_key.as_str());
+    }
+    if let Some(small_image_text) = &small_image_text {
+        assets = assets.small_text(small_image_text.as_str());
+    }
+
+    if let Some(start_timestamp) = start_timestamp {
+        timestamps = timestamps.start(start_timestamp);
+    }
+    if let Some(end_timestamp) = end_timestamp {
+        timestamps = timestamps.start(end_timestamp);
+    }
+
+    activity = activity.assets(assets).timestamps(timestamps);
+
+    client.set_activity(activity)?;
+
+    Ok(())
+}
 
 #[derive(Clap)]
 #[clap(version = "0.1.0", author = "trickybestia <trickybestia@gmail.com>")]
@@ -34,55 +89,69 @@ struct Args {
 }
 
 fn main() {
+    TermLogger::init(
+        LevelFilter::max(),
+        Config::default(),
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    )
+    .unwrap();
+
     let args = Args::parse();
 
     let mut config_shell = ConfigShell::new(args.config.as_path());
 
-    let mut client = Client::new(config_shell.application_id().unwrap());
-
-    client.start();
+    let mut client =
+        new_client(config_shell.application_id().unwrap().to_string().as_str()).unwrap();
 
     loop {
-        if let Err(error) = client.set_activity(|mut activity| {
-            if let Some(state) = config_shell.state() {
-                activity = activity.state(state);
-            }
-            if let Some(details) = config_shell.details() {
-                activity = activity.details(details);
-            }
-            activity = activity.assets(|mut assets| {
-                if let Some(large_image_key) = config_shell.large_image_key() {
-                    assets = assets.large_image(large_image_key);
-                }
-                if let Some(large_image_text) = config_shell.large_image_text() {
-                    assets = assets.large_text(large_image_text);
-                }
-                if let Some(small_image_key) = config_shell.small_image_key() {
-                    assets = assets.small_image(small_image_key);
-                }
-                if let Some(small_image_text) = config_shell.small_image_text() {
-                    assets = assets.small_text(small_image_text);
-                }
-                assets
-            });
-            activity = activity.timestamps(|mut timestamps| {
-                if let Some(start_timestamp) = config_shell.start_timestamp() {
-                    timestamps = timestamps.start(start_timestamp);
-                }
-                if let Some(end_timestamp) = config_shell.end_timestamp() {
-                    timestamps = timestamps.start(end_timestamp);
-                }
-                timestamps
-            });
-            activity
-        }) {
-            println!(
-                "Error while setting activity: `{}`. Retrying after {} seconds.",
-                error,
+        if let Err(err) = client.connect() {
+            warn!(
+                "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
+                err,
                 config_shell.update_delay().unwrap()
             );
+
+            sleep(Duration::from_secs(config_shell.update_delay().unwrap()));
+        } else {
+            info!("Connected to Discord!");
+
+            break;
+        }
+    }
+
+    loop {
+        let should_reconnect;
+
+        if let Err(err) = set_activity(&mut client, &mut config_shell) {
+            warn!(
+                "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
+                err,
+                config_shell.update_delay().unwrap()
+            );
+            should_reconnect = true;
+        } else {
+            should_reconnect = false;
         }
 
         sleep(Duration::from_secs(config_shell.update_delay().unwrap()));
+
+        if should_reconnect {
+            loop {
+                if let Err(err) = client.reconnect() {
+                    warn!(
+                        "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
+                        err,
+                        config_shell.update_delay().unwrap()
+                    );
+
+                    sleep(Duration::from_secs(config_shell.update_delay().unwrap()));
+                } else {
+                    info!("Reconnected to Discord!");
+
+                    break;
+                }
+            }
+        }
     }
 }

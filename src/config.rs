@@ -91,11 +91,11 @@ impl ConfigShell {
         self.execute_function("small_image_text")
     }
 
-    pub fn start_timestamp(&mut self) -> Option<u64> {
+    pub fn start_timestamp(&mut self) -> Option<i64> {
         self.execute_function_and_parse("start_timestamp")
     }
 
-    pub fn end_timestamp(&mut self) -> Option<u64> {
+    pub fn end_timestamp(&mut self) -> Option<i64> {
         self.execute_function_and_parse("end_timestamp")
     }
 }

@@ -11,5 +11,7 @@ codegen-units = 1
 panic = 'abort'
 
 [dependencies]
-discord-rpc-client = "^0.3"
+discord-rich-presence = "^0.1"
 clap = "3.0.0-beta.2"
+log = "0.4"
+simplelog = "^0.10.0"
