@@ -28,7 +28,7 @@ use discord_rich_presence::{
 };
 use log::{info, warn};
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
-use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
 use std::{
     error::Error,
     path::PathBuf,
@@ -149,7 +149,7 @@ struct Args {
 async fn main() {
     TermLogger::init(
         LevelFilter::Info,
-        Config::default(),
+        ConfigBuilder::new().set_time_to_local(true).build(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )
