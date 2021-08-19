@@ -98,4 +98,24 @@ impl ConfigShell {
     pub fn end_timestamp(&mut self) -> Option<i64> {
         self.execute_function_and_parse("end_timestamp")
     }
+
+    pub fn buttons(&mut self) -> Option<Vec<(String, String)>> {
+        if let Some(output) = self.execute_function("buttons") {
+            let parts: Vec<&str> = output.split('\u{0091}').collect();
+            if parts.len() % 2 == 0 {
+                Some(
+                    parts
+                        .iter()
+                        .step_by(2)
+                        .zip(parts.iter().skip(1).step_by(2))
+                        .map(|(label, url)| (label.to_string(), url.to_string()))
+                        .collect(),
+                )
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
 }

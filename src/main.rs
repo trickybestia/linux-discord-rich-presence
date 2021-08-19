@@ -23,7 +23,7 @@ mod shell;
 use clap::Clap;
 use config::ConfigShell;
 use discord_rich_presence::{
-    activity::{Activity, Assets, Timestamps},
+    activity::{Activity, Assets, Button, Timestamps},
     new_client, DiscordIpc,
 };
 use log::{info, warn};
@@ -94,6 +94,7 @@ fn set_activity(
     let mut timestamps = Timestamps::new();
     let mut assets = Assets::new();
     let mut activity = Activity::new();
+    let mut buttons = Vec::new();
 
     let state = config_shell.state();
     let details = config_shell.details();
@@ -103,6 +104,7 @@ fn set_activity(
     let small_image_text = config_shell.small_image_text();
     let start_timestamp = config_shell.start_timestamp();
     let end_timestamp = config_shell.end_timestamp();
+    let raw_buttons = config_shell.buttons();
 
     if let Some(state) = &state {
         activity = activity.state(state.as_str());
@@ -128,6 +130,14 @@ fn set_activity(
     }
     if let Some(end_timestamp) = end_timestamp {
         timestamps = timestamps.start(end_timestamp);
+    }
+
+    if let Some(raw_buttons) = &raw_buttons {
+        for raw_button in raw_buttons {
+            buttons.push(Button::new(raw_button.0.as_str(), raw_button.1.as_str()));
+        }
+
+        activity = activity.buttons(buttons);
     }
 
     activity = activity.assets(assets).timestamps(timestamps);
