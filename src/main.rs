@@ -155,7 +155,7 @@ fn set_activity(
 
     activity = activity.assets(assets).timestamps(timestamps);
 
-    client.set_activity(activity).unwrap();
+    client.set_activity(activity)?;
 
     Ok(())
 }
