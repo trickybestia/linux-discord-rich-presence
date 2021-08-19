@@ -27,8 +27,88 @@ use discord_rich_presence::{
     new_client, DiscordIpc,
 };
 use log::{info, warn};
+use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
-use std::{error::Error, path::PathBuf, thread::sleep, time::Duration};
+use std::{
+    error::Error,
+    path::PathBuf,
+    sync::mpsc::{channel, Receiver},
+    time::Duration,
+};
+use tokio::{
+    task::{self, LocalSet},
+    time::sleep,
+};
+
+async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEvent> {
+    loop {
+        if let Ok(DebouncedEvent::Write(_)) = rx.try_recv() {
+            break;
+        }
+
+        sleep(Duration::from_secs(1)).await;
+    }
+
+    rx
+}
+
+async fn process_rich_presence(mut config_shell: ConfigShell) {
+    let mut client =
+        new_client(config_shell.application_id().unwrap().to_string().as_str()).unwrap();
+
+    loop {
+        if let Err(err) = client.connect() {
+            warn!(
+                "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
+                err,
+                config_shell.update_delay().unwrap()
+            );
+
+            drop(err);
+
+            sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
+        } else {
+            info!("Connected to Discord!");
+
+            break;
+        }
+    }
+
+    loop {
+        let should_reconnect;
+
+        if let Err(err) = set_activity(&mut client, &mut config_shell) {
+            warn!(
+                "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
+                err,
+                config_shell.update_delay().unwrap()
+            );
+            should_reconnect = true;
+        } else {
+            should_reconnect = false;
+        }
+
+        sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
+
+        if should_reconnect {
+            loop {
+                if let Err(err) = client.reconnect() {
+                    warn!(
+                        "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
+                        err,
+                        config_shell.update_delay().unwrap()
+                    );
+
+                    sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
+                } else {
+                    info!("Reconnected to Discord!");
+
+                    break;
+                }
+            }
+        }
+    }
+}
 
 fn set_activity(
     client: &mut impl DiscordIpc,
@@ -75,7 +155,7 @@ fn set_activity(
 
     activity = activity.assets(assets).timestamps(timestamps);
 
-    client.set_activity(activity)?;
+    client.set_activity(activity).unwrap();
 
     Ok(())
 }
@@ -88,70 +168,37 @@ struct Args {
     config: PathBuf,
 }
 
-fn main() {
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
     TermLogger::init(
-        LevelFilter::max(),
+        LevelFilter::Info,
         Config::default(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )
     .unwrap();
 
+    let local = LocalSet::new();
     let args = Args::parse();
+    let (tx, mut rx) = channel();
+    let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(1)).unwrap();
 
-    let mut config_shell = ConfigShell::new(args.config.as_path());
+    watcher
+        .watch(args.config.as_path(), RecursiveMode::NonRecursive)
+        .unwrap();
 
-    let mut client =
-        new_client(config_shell.application_id().unwrap().to_string().as_str()).unwrap();
-
-    loop {
-        if let Err(err) = client.connect() {
-            warn!(
-                "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
-                err,
-                config_shell.update_delay().unwrap()
-            );
-
-            sleep(Duration::from_secs(config_shell.update_delay().unwrap()));
-        } else {
-            info!("Connected to Discord!");
-
-            break;
-        }
-    }
-
-    loop {
-        let should_reconnect;
-
-        if let Err(err) = set_activity(&mut client, &mut config_shell) {
-            warn!(
-                "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
-                err,
-                config_shell.update_delay().unwrap()
-            );
-            should_reconnect = true;
-        } else {
-            should_reconnect = false;
-        }
-
-        sleep(Duration::from_secs(config_shell.update_delay().unwrap()));
-
-        if should_reconnect {
+    local
+        .run_until(async {
             loop {
-                if let Err(err) = client.reconnect() {
-                    warn!(
-                        "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
-                        err,
-                        config_shell.update_delay().unwrap()
-                    );
+                let _task = task::spawn_local(process_rich_presence(ConfigShell::new(
+                    args.config.as_path(),
+                )));
 
-                    sleep(Duration::from_secs(config_shell.update_delay().unwrap()));
-                } else {
-                    info!("Reconnected to Discord!");
+                rx = wait_for_change(rx).await;
 
-                    break;
-                }
+                _task.abort();
+                info!("Config file changed! Restarting...");
             }
-        }
-    }
+        })
+        .await;
 }
