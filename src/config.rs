@@ -18,29 +18,32 @@
 */
 
 use crate::shell::Shell;
-use std::{fs::File, io::Read, path::Path, str::FromStr};
+use std::{path::Path, str::FromStr};
+use tokio::{fs::File, io::AsyncReadExt};
 
 pub struct ConfigShell {
     shell: Shell,
 }
 
 impl ConfigShell {
-    pub fn new(config_path: &Path) -> Self {
-        let mut shell = Shell::new();
+    pub async fn new(config_path: &Path) -> Self {
+        let mut shell = Shell::new().await;
         let mut buf = String::new();
 
         File::open(config_path)
+            .await
             .unwrap()
             .read_to_string(&mut buf)
+            .await
             .unwrap();
 
-        shell.execute(buf.as_str());
+        shell.execute(buf.as_str()).await;
 
         Self { shell }
     }
 
-    fn execute_function(&mut self, function_name: &str) -> Option<String> {
-        let output = self.shell.execute(function_name);
+    async fn execute_function(&mut self, function_name: &str) -> Option<String> {
+        let output = self.shell.execute(function_name).await;
 
         if output.is_empty() {
             None
@@ -49,8 +52,8 @@ impl ConfigShell {
         }
     }
 
-    fn execute_function_and_parse<T: FromStr>(&mut self, function_name: &str) -> Option<T> {
-        let output = self.shell.execute(function_name);
+    async fn execute_function_and_parse<T: FromStr>(&mut self, function_name: &str) -> Option<T> {
+        let output = self.shell.execute(function_name).await;
 
         if let Ok(value) = output.parse() {
             Some(value)
@@ -59,48 +62,48 @@ impl ConfigShell {
         }
     }
 
-    pub fn application_id(&mut self) -> Option<u64> {
-        self.execute_function_and_parse("application_id")
+    pub async fn application_id(&mut self) -> Option<u64> {
+        self.execute_function_and_parse("application_id").await
     }
 
-    pub fn update_delay(&mut self) -> Option<u64> {
-        self.execute_function_and_parse("update_delay")
+    pub async fn update_delay(&mut self) -> Option<u64> {
+        self.execute_function_and_parse("update_delay").await
     }
 
-    pub fn state(&mut self) -> Option<String> {
-        self.execute_function("state")
+    pub async fn state(&mut self) -> Option<String> {
+        self.execute_function("state").await
     }
 
-    pub fn details(&mut self) -> Option<String> {
-        self.execute_function("details")
+    pub async fn details(&mut self) -> Option<String> {
+        self.execute_function("details").await
     }
 
-    pub fn large_image_key(&mut self) -> Option<String> {
-        self.execute_function("large_image_key")
+    pub async fn large_image_key(&mut self) -> Option<String> {
+        self.execute_function("large_image_key").await
     }
 
-    pub fn large_image_text(&mut self) -> Option<String> {
-        self.execute_function("large_image_text")
+    pub async fn large_image_text(&mut self) -> Option<String> {
+        self.execute_function("large_image_text").await
     }
 
-    pub fn small_image_key(&mut self) -> Option<String> {
-        self.execute_function("small_image_key")
+    pub async fn small_image_key(&mut self) -> Option<String> {
+        self.execute_function("small_image_key").await
     }
 
-    pub fn small_image_text(&mut self) -> Option<String> {
-        self.execute_function("small_image_text")
+    pub async fn small_image_text(&mut self) -> Option<String> {
+        self.execute_function("small_image_text").await
     }
 
-    pub fn start_timestamp(&mut self) -> Option<i64> {
-        self.execute_function_and_parse("start_timestamp")
+    pub async fn start_timestamp(&mut self) -> Option<i64> {
+        self.execute_function_and_parse("start_timestamp").await
     }
 
-    pub fn end_timestamp(&mut self) -> Option<i64> {
-        self.execute_function_and_parse("end_timestamp")
+    pub async fn end_timestamp(&mut self) -> Option<i64> {
+        self.execute_function_and_parse("end_timestamp").await
     }
 
-    pub fn buttons(&mut self) -> Option<Vec<(String, String)>> {
-        if let Some(output) = self.execute_function("buttons") {
+    pub async fn buttons(&mut self) -> Option<Vec<(String, String)>> {
+        if let Some(output) = self.execute_function("buttons").await {
             let parts: Vec<&str> = output.split('\u{0091}').collect();
             if parts.len() % 2 == 0 {
                 Some(

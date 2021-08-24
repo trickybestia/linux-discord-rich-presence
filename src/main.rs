@@ -32,7 +32,10 @@ use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMod
 use std::{
     error::Error,
     path::PathBuf,
-    sync::mpsc::{channel, Receiver},
+    sync::{
+        mpsc::{channel, Receiver},
+        Arc,
+    },
     time::Duration,
 };
 use tokio::{
@@ -53,8 +56,15 @@ async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEven
 }
 
 async fn process_rich_presence(mut config_shell: ConfigShell) {
-    let mut client =
-        new_client(config_shell.application_id().unwrap().to_string().as_str()).unwrap();
+    let mut client = new_client(
+        config_shell
+            .application_id()
+            .await
+            .unwrap()
+            .to_string()
+            .as_str(),
+    )
+    .unwrap();
     let mut is_connected = false;
 
     loop {
@@ -63,7 +73,7 @@ async fn process_rich_presence(mut config_shell: ConfigShell) {
                 warn!(
                     "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
                     err,
-                    config_shell.update_delay().unwrap()
+                    config_shell.update_delay().await.unwrap()
                 );
             } else {
                 is_connected = true;
@@ -72,22 +82,25 @@ async fn process_rich_presence(mut config_shell: ConfigShell) {
         }
 
         if is_connected {
-            if let Err(err) = set_activity(&mut client, &mut config_shell) {
+            if let Err(err) = set_activity(&mut client, &mut config_shell).await {
                 warn!(
                     "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
                     err,
-                    config_shell.update_delay().unwrap()
+                    config_shell.update_delay().await.unwrap()
                 );
                 client.close().unwrap();
                 is_connected = false;
             }
         }
 
-        sleep(Duration::from_secs(config_shell.update_delay().unwrap())).await;
+        sleep(Duration::from_secs(
+            config_shell.update_delay().await.unwrap(),
+        ))
+        .await;
     }
 }
 
-fn set_activity(
+async fn set_activity(
     client: &mut impl DiscordIpc,
     config_shell: &mut ConfigShell,
 ) -> Result<(), Box<dyn Error>> {
@@ -96,15 +109,15 @@ fn set_activity(
     let mut activity = Activity::new();
     let mut buttons = Vec::new();
 
-    let state = config_shell.state();
-    let details = config_shell.details();
-    let large_image_key = config_shell.large_image_key();
-    let large_image_text = config_shell.large_image_text();
-    let small_image_key = config_shell.small_image_key();
-    let small_image_text = config_shell.small_image_text();
-    let start_timestamp = config_shell.start_timestamp();
-    let end_timestamp = config_shell.end_timestamp();
-    let raw_buttons = config_shell.buttons();
+    let state = config_shell.state().await;
+    let details = config_shell.details().await;
+    let large_image_key = config_shell.large_image_key().await;
+    let large_image_text = config_shell.large_image_text().await;
+    let small_image_key = config_shell.small_image_key().await;
+    let small_image_text = config_shell.small_image_text().await;
+    let start_timestamp = config_shell.start_timestamp().await;
+    let end_timestamp = config_shell.end_timestamp().await;
+    let raw_buttons = config_shell.buttons().await;
 
     if let Some(state) = &state {
         activity = activity.state(state.as_str());
@@ -166,7 +179,7 @@ async fn main() {
     .unwrap();
 
     let local = LocalSet::new();
-    let args = Args::parse();
+    let args = Arc::new(Args::parse());
     let (tx, mut rx) = channel();
     let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(1)).unwrap();
 
@@ -177,9 +190,10 @@ async fn main() {
     local
         .run_until(async {
             loop {
-                let _task = task::spawn_local(process_rich_presence(ConfigShell::new(
-                    args.config.as_path(),
-                )));
+                let args = args.clone();
+                let _task = task::spawn_local(async move {
+                    process_rich_presence(ConfigShell::new(args.config.as_path()).await).await
+                });
 
                 rx = wait_for_change(rx).await;
 

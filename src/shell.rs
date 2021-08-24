@@ -17,9 +17,10 @@
     along with linux-discord-rich-presence.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::{
-    io::{BufRead, BufReader, BufWriter, Write},
-    process::{Child, ChildStdin, ChildStdout, Command, Stdio},
+use std::process::Stdio;
+use tokio::{
+    io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
+    process::{Child, ChildStdin, ChildStdout, Command},
 };
 
 pub struct Shell {
@@ -36,7 +37,7 @@ impl Drop for Shell {
 }
 
 impl Shell {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
         let mut process = Command::new("sh")
             .env("PS1", "")
             .stdin(Stdio::piped())
@@ -51,14 +52,14 @@ impl Shell {
         }
     }
 
-    pub fn execute(&mut self, code: &str) -> String {
+    pub async fn execute(&mut self, code: &str) -> String {
         let mut buf = String::new();
 
-        self.stdin_writer.write_all(code.as_bytes()).unwrap();
-        self.stdin_writer.write_all("\n".as_bytes()).unwrap();
-        self.stdin_writer.flush().unwrap();
+        self.stdin_writer.write_all(code.as_bytes()).await.unwrap();
+        self.stdin_writer.write_all("\n".as_bytes()).await.unwrap();
+        self.stdin_writer.flush().await.unwrap();
 
-        self.stdout_reader.read_line(&mut buf).unwrap();
+        self.stdout_reader.read_line(&mut buf).await.unwrap();
 
         buf.remove(buf.len() - 1);
 
