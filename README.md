@@ -6,9 +6,10 @@
 
 ## Showcase
 
-1 | 2
-- | - 
-![](./assets/1.png) | ![](./assets/2.png)
+<div style="display: flex; flex-wrap: nowrap; gap: 1rem;">
+    <img src="./assets/1.png" style="width: 50%; height: 50%" />
+    <img src="./assets/2.png" style="width: 50%; height: 50%" />
+</div>
 
 ## Features
 
