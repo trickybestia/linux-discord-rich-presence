@@ -17,7 +17,7 @@
 
 ## How to download
 
-1. Go to the ["Releases" page](https://github.com/trickybestia/linux-discord-rich-presence/releases), find the latest release and download `linux-discord-rich-presence` asset from it.
+1. Go to the [Releases page](https://github.com/trickybestia/linux-discord-rich-presence/releases), find the latest release and download `linux-discord-rich-presence` asset from it.
 2. Move it to the `/bin/` and make it executable.
 
 ## How to build
