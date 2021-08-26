@@ -5,9 +5,10 @@
 ---
 
 ## Showcase
-![](./assets/1.png)
 
-![](./assets/2.png)
+1 | 2
+- | - 
+![](./assets/1.png) | ![](./assets/2.png)
 
 ## Features
 
