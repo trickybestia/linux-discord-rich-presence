@@ -172,9 +172,12 @@ def buttons():
     # or
     # return ''
 
-while True:
-    command = input()
-    print(eval(command + '()'))
+try:
+    while True:
+        command = input()
+        print(eval(command + '()'))
+except EOFError:
+    ...
 ```
 
 
