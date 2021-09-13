@@ -39,6 +39,7 @@ sudo mv -f ./linux-discord-rich-presence-bin /bin/linux-discord-rich-presence
 ## How to install 
 
 Create `~/.config/linux-discord-rich-presencerc` from the following template (do not forget to make it executable!):
+##### Sh template
 ```sh
 #!/bin/sh
 
@@ -111,6 +112,71 @@ do
     eval $command
 done
 ```
+##### Python template
+```python
+#!/bin/python
+
+from os import popen
+
+def application_id():
+    return your_application_id_here
+
+def update_delay():
+    return 10
+
+def state():
+    with popen('uname -r') as process:
+        return process.read()[0:-1]
+    # or
+    # return ''
+
+def details():
+    with popen('uname -n') as process:
+        return process.read()[0:-1]
+    # or
+    # return ''
+
+def large_image_key():
+    return 'your_large_image_key_here'
+    # or
+    # return ''
+
+def large_image_text():
+    return 'your_large_image_text_here'
+    # or
+    # return ''
+
+def small_image_key():
+    return 'your_small_image_key_here'
+    # or
+    # return ''
+
+def small_image_text():
+    return 'your_small_image_text_here'
+    # or
+    # return ''
+
+def start_timestamp():
+    with popen('date -d "$(uptime -s)" +%s') as process:
+        return process.read()[0:-1]
+    # or
+    # return ''
+
+def end_timestamp():
+    return ''
+
+def buttons():
+    return 'button1\u0091https://button1\u0091button2\u0091https://button2'
+    # or
+    # return 'button1\u0091https://button1'
+    # or
+    # return ''
+
+while True:
+    command = input()
+    print(eval(command + '()'))
+```
+
 
 ## How to use
 
