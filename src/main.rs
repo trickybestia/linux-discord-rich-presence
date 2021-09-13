@@ -71,7 +71,7 @@ async fn process_rich_presence(mut config_shell: ConfigShell) {
         if !is_connected {
             if let Err(err) = client.connect() {
                 warn!(
-                    "Error while connecting to Discord: `{:?}`. Retrying after {:?} seconds.",
+                    "Error while connecting to Discord: `{}`. Retrying after {} seconds.",
                     err,
                     config_shell.update_delay().await.unwrap()
                 );
@@ -84,7 +84,7 @@ async fn process_rich_presence(mut config_shell: ConfigShell) {
         if is_connected {
             if let Err(err) = set_activity(&mut client, &mut config_shell).await {
                 warn!(
-                    "Error while setting activity: `{:?}`. Retrying after {:?} seconds.",
+                    "Error while setting activity: `{}`. Retrying after {} seconds.",
                     err,
                     config_shell.update_delay().await.unwrap()
                 );
