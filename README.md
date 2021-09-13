@@ -38,7 +38,7 @@ sudo mv -f ./linux-discord-rich-presence-bin /bin/linux-discord-rich-presence
 
 ## How to install 
 
-Create `~/.config/linux-discord-rich-presencerc` from the following template:
+Create `~/.config/linux-discord-rich-presencerc` from the following template (do not forget to make it executable!):
 ```sh
 #!/bin/sh
 
@@ -105,7 +105,11 @@ buttons () {
     # echo
 }
 
-echo
+while true
+do
+    read command
+    eval $command
+done
 ```
 
 ## How to use
