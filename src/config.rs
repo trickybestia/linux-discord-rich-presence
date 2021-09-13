@@ -19,7 +19,6 @@
 
 use crate::shell::Shell;
 use std::{path::Path, str::FromStr};
-use tokio::{fs::File, io::AsyncReadExt};
 
 pub struct ConfigShell {
     shell: Shell,
@@ -27,19 +26,9 @@ pub struct ConfigShell {
 
 impl ConfigShell {
     pub async fn new(config_path: &Path) -> Self {
-        let mut shell = Shell::new().await;
-        let mut buf = String::new();
-
-        File::open(config_path)
-            .await
-            .unwrap()
-            .read_to_string(&mut buf)
-            .await
-            .unwrap();
-
-        shell.execute(buf.as_str()).await;
-
-        Self { shell }
+        Self {
+            shell: Shell::new(config_path).await,
+        }
     }
 
     async fn execute_function(&mut self, function_name: &str) -> Option<String> {

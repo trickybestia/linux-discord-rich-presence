@@ -17,7 +17,7 @@
     along with linux-discord-rich-presence.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::process::Stdio;
+use std::{ffi::OsStr, process::Stdio};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
     process::{Child, ChildStdin, ChildStdout, Command},
@@ -37,9 +37,11 @@ impl Drop for Shell {
 }
 
 impl Shell {
-    pub async fn new() -> Self {
-        let mut process = Command::new("sh")
-            .env("PS1", "")
+    pub async fn new<S>(program: S) -> Self
+    where
+        S: AsRef<OsStr>,
+    {
+        let mut process = Command::new(program)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
