@@ -13,7 +13,7 @@
 ## Features
 
 * Set Discord Rich Presence Activity's state, details, large image, large image hover text, small image, small image hover text, start and end timestamps.
-* Config file in .sh format.
+* Config file in any format.
 * Dynamic config file reloading.
 
 ## How to download
