@@ -2,7 +2,7 @@
 name = "linux-discord-rich-presence"
 description = "Customize Discord Rich Presence with shell hooks."
 authors = ["trickybestia <trickybestia@gmail.com>"]
-version = "0.1.0"
+version = "1.0.0"
 edition = "2018"
 
 [profile.release]

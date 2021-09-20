@@ -161,7 +161,7 @@ async fn set_activity(
 }
 
 #[derive(Clap)]
-#[clap(version = "0.1.0", author = "trickybestia <trickybestia@gmail.com>")]
+#[clap(version = "1.0.0", author = "trickybestia <trickybestia@gmail.com>")]
 struct Args {
     /// Path to the config file
     #[clap(short, long)]
