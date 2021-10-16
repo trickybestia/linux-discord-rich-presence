@@ -1,6 +1,6 @@
 [package]
 name = "linux-discord-rich-presence"
-description = "Customize Discord Rich Presence with shell hooks."
+description = "Customizable Discord Rich Presence client for Linux"
 authors = ["trickybestia <trickybestia@gmail.com>"]
 version = "1.0.0"
 edition = "2018"
