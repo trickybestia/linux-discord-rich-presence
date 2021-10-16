@@ -18,19 +18,11 @@
 */
 
 mod config;
+mod rich_presence_client;
+mod rich_presence_controller;
 mod shell;
 
-use clap::Clap;
-use config::ConfigShell;
-use discord_rich_presence::{
-    activity::{Activity, Assets, Button, Timestamps},
-    new_client, DiscordIpc,
-};
-use log::{info, warn};
-use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
-use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
 use std::{
-    error::Error,
     path::PathBuf,
     sync::{
         mpsc::{channel, Receiver},
@@ -38,10 +30,20 @@ use std::{
     },
     time::Duration,
 };
+
+use clap::Clap;
+use log::{error, info, warn};
+use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use serde_json::from_str;
+use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
 use tokio::{
     task::{self, LocalSet},
     time::sleep,
 };
+
+use crate::{config::Config, rich_presence_controller::RichPresenceController, shell::Shell};
+
+const INVALID_UPDATE_RESPONSE_UPDATE_DELAY: u64 = 10;
 
 async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEvent> {
     loop {
@@ -55,109 +57,47 @@ async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEven
     rx
 }
 
-async fn process_rich_presence(mut config_shell: ConfigShell) {
-    let mut client = new_client(
-        config_shell
-            .application_id()
-            .await
-            .unwrap()
-            .to_string()
-            .as_str(),
-    )
-    .unwrap();
+async fn process_rich_presence(mut config_shell: Shell) {
+    let mut controller = RichPresenceController::new();
     let mut is_connected = false;
 
     loop {
-        if !is_connected {
-            if let Err(err) = client.connect() {
-                warn!(
-                    "Error while connecting to Discord: `{}`. Retrying after {} seconds.",
-                    err,
-                    config_shell.update_delay().await.unwrap()
-                );
-            } else {
-                is_connected = true;
-                info!("Connected to Discord!");
-            }
-        }
+        let sleep_duration;
+        let update_response = config_shell.execute("update").await;
 
-        if is_connected {
-            if let Err(err) = set_activity(&mut client, &mut config_shell).await {
-                warn!(
-                    "Error while setting activity: `{}`. Retrying after {} seconds.",
-                    err,
-                    config_shell.update_delay().await.unwrap()
-                );
-                client.close().unwrap();
+        match from_str::<Config>(&update_response) {
+            Ok(config) => {
+                match controller.update(config.items.into_iter()).await {
+                    Ok(()) => {
+                        if !is_connected {
+                            is_connected = true;
+
+                            info!("Connected to Discord!");
+                        }
+                    }
+                    Err(err) => {
+                        is_connected = false;
+
+                        warn!("{} Retrying after {} seconds.", err, config.update_delay);
+                    }
+                }
+
+                sleep_duration = Duration::from_secs(config.update_delay);
+            }
+            Err(err) => {
                 is_connected = false;
+
+                error!(
+                    "Error while parsing config update response: `{}`. Received value: `{}`. Retrying after {} seconds.",
+                    err, update_response, INVALID_UPDATE_RESPONSE_UPDATE_DELAY
+                );
+
+                sleep_duration = Duration::from_secs(INVALID_UPDATE_RESPONSE_UPDATE_DELAY);
             }
         }
 
-        sleep(Duration::from_secs(
-            config_shell.update_delay().await.unwrap(),
-        ))
-        .await;
+        sleep(sleep_duration).await;
     }
-}
-
-async fn set_activity(
-    client: &mut impl DiscordIpc,
-    config_shell: &mut ConfigShell,
-) -> Result<(), Box<dyn Error>> {
-    let mut timestamps = Timestamps::new();
-    let mut assets = Assets::new();
-    let mut activity = Activity::new();
-    let mut buttons = Vec::new();
-
-    let state = config_shell.state().await;
-    let details = config_shell.details().await;
-    let large_image_key = config_shell.large_image_key().await;
-    let large_image_text = config_shell.large_image_text().await;
-    let small_image_key = config_shell.small_image_key().await;
-    let small_image_text = config_shell.small_image_text().await;
-    let start_timestamp = config_shell.start_timestamp().await;
-    let end_timestamp = config_shell.end_timestamp().await;
-    let raw_buttons = config_shell.buttons().await;
-
-    if let Some(state) = &state {
-        activity = activity.state(state.as_str());
-    }
-    if let Some(details) = &details {
-        activity = activity.details(details.as_str());
-    }
-    if let Some(large_image_key) = &large_image_key {
-        assets = assets.large_image(large_image_key.as_str());
-    }
-    if let Some(large_image_text) = &large_image_text {
-        assets = assets.large_text(large_image_text.as_str());
-    }
-    if let Some(small_image_key) = &small_image_key {
-        assets = assets.small_image(small_image_key.as_str());
-    }
-    if let Some(small_image_text) = &small_image_text {
-        assets = assets.small_text(small_image_text.as_str());
-    }
-
-    if let Some(start_timestamp) = start_timestamp {
-        timestamps = timestamps.start(start_timestamp);
-    }
-    if let Some(end_timestamp) = end_timestamp {
-        timestamps = timestamps.start(end_timestamp);
-    }
-
-    if let Some(raw_buttons) = &raw_buttons {
-        for raw_button in raw_buttons {
-            buttons.push(Button::new(raw_button.0.as_str(), raw_button.1.as_str()));
-        }
-
-        activity = activity.buttons(buttons);
-    }
-
-    activity = activity.assets(assets).timestamps(timestamps);
-
-    client.set_activity(activity)?;
-
-    Ok(())
 }
 
 #[derive(Clap)]
@@ -190,14 +130,12 @@ async fn main() {
     local
         .run_until(async {
             loop {
-                let args = args.clone();
-                let _task = task::spawn_local(async move {
-                    process_rich_presence(ConfigShell::new(args.config.as_path()).await).await
-                });
+                let shell = Shell::new(args.config.as_path()).await;
+                let task = task::spawn_local(async move { process_rich_presence(shell).await });
 
                 rx = wait_for_change(rx).await;
 
-                _task.abort();
+                task.abort();
                 info!("Config file changed! Restarting...");
             }
         })

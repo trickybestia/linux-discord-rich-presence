@@ -18,6 +18,7 @@
 */
 
 use std::{ffi::OsStr, process::Stdio};
+
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
     process::{Child, ChildStdin, ChildStdout, Command},
@@ -63,7 +64,9 @@ impl Shell {
 
         self.stdout_reader.read_line(&mut buf).await.unwrap();
 
-        buf.remove(buf.len() - 1);
+        if buf.len() != 0 {
+            buf.remove(buf.len() - 1);
+        }
 
         buf
     }
