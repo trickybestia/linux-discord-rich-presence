@@ -64,7 +64,7 @@ impl Shell {
 
         self.stdout_reader.read_line(&mut buf).await.unwrap();
 
-        if buf.len() != 0 {
+        if !buf.is_empty() {
             buf.remove(buf.len() - 1);
         }
 

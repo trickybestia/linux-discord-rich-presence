@@ -75,7 +75,7 @@ impl RichPresenceClient {
             timestamps = timestamps.start(end_timestamp);
         }
 
-        if config.buttons.len() != 0 {
+        if !config.buttons.is_empty() {
             for button in &config.buttons {
                 buttons.push(Button::new(button.label.as_str(), button.url.as_str()));
             }
