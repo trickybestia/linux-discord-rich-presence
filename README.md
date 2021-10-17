@@ -48,11 +48,9 @@ import json
 from os import popen
 from contextlib import suppress
 
-
 def cmd(program):
     with popen(program) as process:
         return process.read()[0:-1]
-
 
 def update():
     return {'update_delay': 10, 'items': [{
@@ -68,15 +66,10 @@ def update():
                      }],
     }]}
 
-
 with suppress(EOFError):
-    while True:
-        command = input()
-
-        if command == 'update':
+    while(True):
+        if input() == 'update':
             print(json.dumps(update()))
-        else:
-            print()
 ```
 
 
