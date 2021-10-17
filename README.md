@@ -48,8 +48,8 @@ import json
 from os import popen
 from contextlib import suppress
 
-def cmd(program):
-    with popen(program) as process:
+def cmd(command):
+    with popen(command) as process:
         return process.read()[0:-1]
 
 def update():
