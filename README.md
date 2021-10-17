@@ -67,7 +67,7 @@ def update():
     }]}
 
 with suppress(EOFError):
-    while(True):
+    while True:
         if input() == 'update':
             print(json.dumps(update()))
 ```
