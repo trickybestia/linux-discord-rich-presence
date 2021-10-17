@@ -60,7 +60,7 @@ def update():
         'details': cmd('uname -n'),
         'large_image': {'key': 'some_image', 'text': None},
         'small_image': None,
-        'start_timestamp': cmd('date -d "$(uptime -s)" +%s'),
+        'start_timestamp': int(cmd('date -d "$(uptime -s)" +%s')),
         'end_timestamp': None,
         'buttons': [{'label': 'some_button',
                     'url': 'https://example.com/'
