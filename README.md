@@ -116,68 +116,39 @@ done
 ```python
 #!/bin/python
 
+import json
 from os import popen
+from contextlib import suppress
 
-def application_id():
-    return your_application_id_here
 
-def update_delay():
-    return 10
-
-def state():
-    with popen('uname -r') as process:
+def cmd(program):
+    with popen(program) as process:
         return process.read()[0:-1]
-    # or
-    # return ''
 
-def details():
-    with popen('uname -n') as process:
-        return process.read()[0:-1]
-    # or
-    # return ''
 
-def large_image_key():
-    return 'your_large_image_key_here'
-    # or
-    # return ''
+def update():
+    return {'update_delay': 10, 'items': [{
+        'application_id': 000000000000000000,
+        'state': cmd('uname -r'),
+        'details': cmd('uname -n'),
+        'large_image': {'key': 'some_image', 'text': None},
+        'small_image': None,
+        'start_timestamp': cmd('date -d "$(uptime -s)" +%s'),
+        'end_timestamp': None,
+        'buttons': [{'label': 'some_button',
+                    'url': 'https://example.com/'
+                     }],
+    }]}
 
-def large_image_text():
-    return 'your_large_image_text_here'
-    # or
-    # return ''
 
-def small_image_key():
-    return 'your_small_image_key_here'
-    # or
-    # return ''
-
-def small_image_text():
-    return 'your_small_image_text_here'
-    # or
-    # return ''
-
-def start_timestamp():
-    with popen('date -d "$(uptime -s)" +%s') as process:
-        return process.read()[0:-1]
-    # or
-    # return ''
-
-def end_timestamp():
-    return ''
-
-def buttons():
-    return 'button1\u0091https://button1\u0091button2\u0091https://button2'
-    # or
-    # return 'button1\u0091https://button1'
-    # or
-    # return ''
-
-try:
+with suppress(EOFError):
     while True:
         command = input()
-        print(eval(command + '()'))
-except EOFError:
-    ...
+
+        if command == 'update':
+            print(json.dumps(update()))
+        else:
+            print()
 ```
 
 
