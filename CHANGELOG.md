@@ -1,3 +1,7 @@
+## v2.0.0 (2021-10-17)
+### Features:
+* Use any count of Rich Presence statuses.
+
 ## v1.0.0 (2021-09-20)
 The first release
 ### Features:
