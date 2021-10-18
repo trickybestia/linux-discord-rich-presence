@@ -11,7 +11,7 @@ codegen-units = 1
 panic = 'unwind'
 
 [dependencies]
-discord-rich-presence = { git = "https://github.com/trickybestia/discord-rich-presence", branch = "object-safe-DiscordIpc" }
+discord-rich-presence = "0.1"
 clap = "3.0.0-beta.4"
 log = "0.4"
 simplelog = "0.10"
