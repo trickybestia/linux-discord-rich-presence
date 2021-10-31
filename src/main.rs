@@ -101,7 +101,7 @@ async fn process_rich_presence(mut config_shell: Shell) {
 }
 
 #[derive(Clap)]
-#[clap(version = "2.0.0", author = "trickybestia <trickybestia@gmail.com>")]
+#[clap(version = "2.0.1", author = "trickybestia <trickybestia@gmail.com>")]
 struct Args {
     /// Path to the config file
     #[clap(short, long)]
