@@ -1,3 +1,7 @@
+## v2.0.1 (2021-10-31)
+### Fixes:
+* Fix bug with `clap` version.
+
 ## v2.0.0 (2021-10-17)
 ### Features:
 * Use any count of Rich Presence statuses.
