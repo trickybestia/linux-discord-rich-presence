@@ -5,11 +5,6 @@ authors = ["trickybestia <trickybestia@gmail.com>"]
 version = "2.0.1"
 edition = "2018"
 
-[profile.release]
-lto = true
-codegen-units = 1
-panic = 'unwind'
-
 [dependencies]
 discord-rich-presence = "0.1"
 clap = "=3.0.0-beta.4"
