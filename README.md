@@ -17,12 +17,17 @@
 * Config file in any format.
 * Dynamic config file reloading.
 
-## How to download
+## Installation
 
-1. Go to the [Releases page](https://github.com/trickybestia/linux-discord-rich-presence/releases), find the latest release and download `linux-discord-rich-presence` asset from it.
-2. Move it to the `/bin/` and make it executable.
+### Building from source
 
-## How to build
+#### With AUR helper (for ArchLinux-based distros)
+
+```sh
+yay -Syu linux-discord-rich-presence
+```
+
+#### Manually
 
 1. [Install Rust](https://rustup.rs/).
 2. Run the following shell script:
@@ -37,10 +42,17 @@ strip linux-discord-rich-presence-bin
 sudo mv -f ./linux-discord-rich-presence-bin /bin/linux-discord-rich-presence
 ```
 
-## How to install 
+### Downloading binaries
 
-Create `~/.config/linux-discord-rich-presencerc` from the following template (do not forget to make it executable!):
+1. Go to the [Releases page](https://github.com/trickybestia/linux-discord-rich-presence/releases), find the latest release and download `linux-discord-rich-presence` asset from it.
+2. Move it to the `/bin/` and make it executable.
+
+## Configuration
+
+Create `~/.config/linux-discord-rich-presencerc` from the following template (do not forget to make it executable):
+
 ##### Python template
+
 ```python
 #!/bin/python
 
