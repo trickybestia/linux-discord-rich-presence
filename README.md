@@ -6,9 +6,9 @@
 
 ## Showcase
 
-![](./assets/1.png)
+![](./doc/images/showcase_1.png)
 
-![](./assets/2.png)
+![](./doc/images/showcase_2.png)
 
 ## Features
 
@@ -49,41 +49,7 @@ sudo mv -f ./linux-discord-rich-presence-bin /bin/linux-discord-rich-presence
 
 ## Configuration
 
-Create `~/.config/linux-discord-rich-presencerc` from the following template (do not forget to make it executable):
-
-##### Python template
-
-```python
-#!/bin/python
-
-import json
-from os import popen
-from contextlib import suppress
-
-def cmd(command):
-    with popen(command) as process:
-        return process.read()[0:-1]
-
-def update():
-    return {'update_delay': 10, 'items': [{
-        'application_id': 000000000000000000,
-        'state': cmd('uname -r'),
-        'details': cmd('uname -n'),
-        'large_image': {'key': 'some_image', 'text': None},
-        'small_image': None,
-        'start_timestamp': int(cmd('date -d "$(uptime -s)" +%s')),
-        'end_timestamp': None,
-        'buttons': [{'label': 'some_button',
-                    'url': 'https://example.com/'
-                     }],
-    }]}
-
-with suppress(EOFError):
-    while True:
-        if input() == 'update':
-            print(json.dumps(update()))
-```
-
+Create `~/.config/linux-discord-rich-presencerc` from the [template](./doc/configs/all-in-one.py) and make it executable. IT IS JUST TEMPLATE. To make it working see [configuration guide](./doc/configuration.md).
 
 ## How to use
 
@@ -91,3 +57,5 @@ Run the following command:
 ```sh
 linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc
 ```
+
+You also can add this command to autostart in your DE settings.
