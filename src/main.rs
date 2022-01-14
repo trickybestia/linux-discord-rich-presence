@@ -31,7 +31,7 @@ use std::{
     time::Duration,
 };
 
-use clap::Clap;
+use clap::Parser;
 use log::{error, info, warn};
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use serde_json::from_str;
@@ -100,8 +100,8 @@ async fn process_rich_presence(mut config_shell: Shell) {
     }
 }
 
-#[derive(Clap)]
-#[clap(version = "2.0.1", author = "trickybestia <trickybestia@gmail.com>")]
+#[derive(Parser)]
+#[clap(author, version, about)]
 struct Args {
     /// Path to the config file
     #[clap(short, long)]
