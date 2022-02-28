@@ -2,14 +2,15 @@
 
 import json
 from os import popen
-from contextlib import suppress
+from sys import stdout
+from time import sleep
 
 def cmd(command):
     with popen(command) as process:
         return process.read()[0:-1]
 
 def update():
-    return {'update_delay': 10, 'items': [{
+    return [{
         'application_id': 000000000000000000,
         'state': cmd('uname -r'),
         'details': cmd('uname -n'),
@@ -20,9 +21,11 @@ def update():
         'buttons': [{'label': 'some_button',
                     'url': 'https://example.com/'
                      }],
-    }]}
+    }]
 
-with suppress(EOFError):
-    while True:
-        if input() == 'update':
-            print(json.dumps(update()))
+while True:
+    print(json.dumps(update()))
+
+    stdout.flush()
+
+    sleep(10)

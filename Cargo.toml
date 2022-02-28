@@ -5,6 +5,9 @@ authors = ["trickybestia <trickybestia@gmail.com>"]
 version = "2.0.1"
 edition = "2018"
 
+[profile.release]
+strip = true
+
 [dependencies]
 discord-rich-presence = "0.1"
 clap = { version = "3", features = ["derive"] }
@@ -15,3 +18,4 @@ notify = "4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "1"
+lazy_static = "1.4"

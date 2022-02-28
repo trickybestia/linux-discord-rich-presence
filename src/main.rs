@@ -17,10 +17,10 @@
     along with linux-discord-rich-presence.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-mod config;
 mod rich_presence_client;
 mod rich_presence_controller;
 mod shell;
+mod update_message;
 
 use std::{
     path::PathBuf,
@@ -32,6 +32,7 @@ use std::{
 };
 
 use clap::Parser;
+use lazy_static::lazy_static;
 use log::{error, info, warn};
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 use serde_json::from_str;
@@ -41,9 +42,13 @@ use tokio::{
     time::sleep,
 };
 
-use crate::{config::Config, rich_presence_controller::RichPresenceController, shell::Shell};
+use crate::{
+    rich_presence_controller::RichPresenceController, shell::Shell, update_message::UpdateMessage,
+};
 
-const INVALID_UPDATE_RESPONSE_UPDATE_DELAY: u64 = 10;
+lazy_static! {
+    static ref RECONNECT_DELAY: Duration = Duration::from_secs(10);
+}
 
 async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEvent> {
     loop {
@@ -60,44 +65,54 @@ async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEven
 async fn process_rich_presence(mut config_shell: Shell) {
     let mut controller = RichPresenceController::new();
     let mut is_connected = false;
+    let mut buf = String::new();
 
-    loop {
-        let sleep_duration;
-        let update_response = config_shell.execute("update").await;
-
-        match from_str::<Config>(&update_response) {
-            Ok(config) => {
-                match controller.update(config.items.into_iter()).await {
+    while {
+        if let Ok(n) = config_shell.read_line(&mut buf).await {
+            n != 0
+        } else {
+            false
+        }
+    } {
+        match from_str::<UpdateMessage>(&buf) {
+            Ok(message) => loop {
+                match controller.update(&message).await {
                     Ok(()) => {
                         if !is_connected {
                             is_connected = true;
 
                             info!("Connected to Discord!");
                         }
+
+                        break;
                     }
                     Err(err) => {
                         is_connected = false;
 
-                        warn!("{} Retrying after {} seconds.", err, config.update_delay);
+                        warn!(
+                            "{} Retrying after {} seconds.",
+                            err,
+                            RECONNECT_DELAY.as_secs()
+                        );
+
+                        sleep(*RECONNECT_DELAY).await;
                     }
                 }
-
-                sleep_duration = Duration::from_secs(config.update_delay);
-            }
+            },
             Err(err) => {
                 is_connected = false;
 
                 error!(
-                    "Error while parsing config update response: `{}`. Received value: `{}`. Retrying after {} seconds.",
-                    err, update_response, INVALID_UPDATE_RESPONSE_UPDATE_DELAY
+                    "Error while parsing config response: `{}`. Received value: `{}`.",
+                    err, buf
                 );
-
-                sleep_duration = Duration::from_secs(INVALID_UPDATE_RESPONSE_UPDATE_DELAY);
             }
         }
 
-        sleep(sleep_duration).await;
+        buf.clear();
     }
+
+    error!("Config Process' stdout was closed (it died?). Clearing all Rich Presence activities.");
 }
 
 #[derive(Parser)]
@@ -136,7 +151,7 @@ async fn main() {
                 rx = wait_for_change(rx).await;
 
                 task.abort();
-                info!("Config file changed! Restarting...");
+                info!("Config file was changed! Restarting...");
             }
         })
         .await;

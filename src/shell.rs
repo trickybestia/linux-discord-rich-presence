@@ -20,13 +20,12 @@
 use std::{ffi::OsStr, process::Stdio};
 
 use tokio::{
-    io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter},
-    process::{Child, ChildStdin, ChildStdout, Command},
+    io::{self, AsyncBufReadExt, BufReader},
+    process::{Child, ChildStdout, Command},
 };
 
 pub struct Shell {
     process: Child,
-    stdin_writer: BufWriter<ChildStdin>,
     stdout_reader: BufReader<ChildStdout>,
 }
 
@@ -43,31 +42,17 @@ impl Shell {
         S: AsRef<OsStr>,
     {
         let mut process = Command::new(program)
-            .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()
             .unwrap();
 
         Self {
-            stdin_writer: BufWriter::new(process.stdin.take().unwrap()),
             stdout_reader: BufReader::new(process.stdout.take().unwrap()),
             process,
         }
     }
 
-    pub async fn execute(&mut self, code: &str) -> String {
-        let mut buf = String::new();
-
-        self.stdin_writer.write_all(code.as_bytes()).await.unwrap();
-        self.stdin_writer.write_all("\n".as_bytes()).await.unwrap();
-        self.stdin_writer.flush().await.unwrap();
-
-        self.stdout_reader.read_line(&mut buf).await.unwrap();
-
-        if !buf.is_empty() {
-            buf.remove(buf.len() - 1);
-        }
-
-        buf
+    pub async fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
+        self.stdout_reader.read_line(buf).await
     }
 }

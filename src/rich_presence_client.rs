@@ -24,7 +24,7 @@ use discord_rich_presence::{
     new_client, DiscordIpc,
 };
 
-use crate::config::ConfigItem;
+use crate::update_message::UpdateMessageItem;
 
 pub struct RichPresenceClient {
     client: Box<dyn DiscordIpc>,
@@ -40,27 +40,27 @@ impl RichPresenceClient {
         Ok(Self { client })
     }
 
-    pub async fn set_activity(&mut self, config: &ConfigItem) -> Result<(), Box<dyn Error>> {
+    pub async fn set_activity(&mut self, message: &UpdateMessageItem) -> Result<(), Box<dyn Error>> {
         let mut timestamps = Timestamps::new();
         let mut assets = Assets::new();
         let mut activity = Activity::new();
         let mut buttons = Vec::new();
 
-        if let Some(state) = &config.state {
+        if let Some(state) = &message.state {
             activity = activity.state(state.as_str());
         }
-        if let Some(details) = &config.details {
+        if let Some(details) = &message.details {
             activity = activity.details(details.as_str());
         }
 
-        if let Some(large_image) = &config.large_image {
+        if let Some(large_image) = &message.large_image {
             assets = assets.large_image(large_image.key.as_str());
 
             if let Some(text) = &large_image.text {
                 assets = assets.large_text(text.as_str());
             }
         }
-        if let Some(small_image) = &config.small_image {
+        if let Some(small_image) = &message.small_image {
             assets = assets.small_image(small_image.key.as_str());
 
             if let Some(text) = &small_image.text {
@@ -68,15 +68,15 @@ impl RichPresenceClient {
             }
         }
 
-        if let Some(start_timestamp) = config.start_timestamp {
+        if let Some(start_timestamp) = message.start_timestamp {
             timestamps = timestamps.start(start_timestamp);
         }
-        if let Some(end_timestamp) = config.end_timestamp {
+        if let Some(end_timestamp) = message.end_timestamp {
             timestamps = timestamps.start(end_timestamp);
         }
 
-        if !config.buttons.is_empty() {
-            for button in &config.buttons {
+        if !message.buttons.is_empty() {
+            for button in &message.buttons {
                 buttons.push(Button::new(button.label.as_str(), button.url.as_str()));
             }
 

@@ -19,14 +19,11 @@
 
 use serde::Deserialize;
 
-#[derive(Deserialize)]
-pub struct Config {
-    pub items: Vec<ConfigItem>,
-    pub update_delay: u64,
-}
+pub type UpdateMessage = Vec<UpdateMessageItem>;
 
-#[derive(Deserialize)]
-pub struct ConfigItem {
+#[derive(Deserialize, Default)]
+#[serde(default)]
+pub struct UpdateMessageItem {
     pub application_id: u64,
     pub state: Option<String>,
     pub details: Option<String>,
@@ -37,13 +34,15 @@ pub struct ConfigItem {
     pub buttons: Vec<Button>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 pub struct Button {
     pub label: String,
     pub url: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 pub struct Image {
     pub key: String,
     pub text: Option<String>,

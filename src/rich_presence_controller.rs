@@ -19,7 +19,7 @@
 
 use std::{collections::HashMap, error::Error};
 
-use crate::{config::ConfigItem, rich_presence_client::RichPresenceClient};
+use crate::{rich_presence_client::RichPresenceClient, update_message::UpdateMessage};
 
 #[derive(thiserror::Error, Debug)]
 pub enum UpdateError {
@@ -40,13 +40,10 @@ impl RichPresenceController {
         }
     }
 
-    pub async fn update(
-        &mut self,
-        items: impl Iterator<Item = ConfigItem>,
-    ) -> Result<(), UpdateError> {
+    pub async fn update(&mut self, message: &UpdateMessage) -> Result<(), UpdateError> {
         let mut new_clients = HashMap::new();
 
-        for item in items {
+        for item in message {
             let mut client = if let Some(client) = self.clients.remove(&item.application_id) {
                 client
             } else {

@@ -7,9 +7,9 @@ At first, let's understand how linux-discord-rich-presence configuration system 
 When you start linux-discord-rich-presence the following steps are executed:
 
 1. The config is executed as if you have executed it from the shell via `~/.config/linux-discord-rich-presencerc` as if it was any other application. Let's call started process as "Config Process".
-2. linux-discord-rich-presence connects to itself stdin (standard input) and stdout (standard output) of the Config Process.
-3. linux-discord-rich-presence periodically sends `update` command to the Config Process' stdin and waits for response. Response is serialized as JSON, schema can be found [here](./response.schema.json).
-4. linux-discord-rich-presence parses response and updates your Discord Rich Presence status according to it.
+2. linux-discord-rich-presence connects to stdout (standard output) of the Config Process.
+3. linux-discord-rich-presence listens Config Process' stdout and waits for updates. Update message is serialized as JSON, schema can be found [here](./update.schema.json).
+4. linux-discord-rich-presence parses update message and updates your Discord Rich Presence status according to it.
 5. Execution goes back to step 3.
 
 Atfer reading this the following conclusions can be made:

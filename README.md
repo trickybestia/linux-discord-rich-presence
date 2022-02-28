@@ -17,15 +17,13 @@ Customizable Discord Rich Presence client for Linux
 
 ## Installation
 
-### Building from source
-
-#### With AUR helper (for ArchLinux-based distros)
+### With AUR helper (for ArchLinux-based distros)
 
 ```sh
 yay -Syu linux-discord-rich-presence
 ```
 
-#### Manually
+### Manually
 
 1. [Install Rust](https://rustup.rs/).
 2. Run the following shell script:
@@ -34,17 +32,10 @@ yay -Syu linux-discord-rich-presence
 git clone https://github.com/trickybestia/linux-discord-rich-presence.git
 cd linux-discord-rich-presence
 cargo build --release
-cp ./target/release/linux-discord-rich-presence ../linux-discord-rich-presence-bin
+sudo mv -f ./target/release/linux-discord-rich-presence /bin/linux-discord-rich-presence
 cd ..
 rm -rf ./linux-discord-rich-presence
-strip linux-discord-rich-presence-bin
-sudo mv -f ./linux-discord-rich-presence-bin /bin/linux-discord-rich-presence
 ```
-
-### Downloading binaries
-
-1. Go to the [Releases page](https://github.com/trickybestia/linux-discord-rich-presence/releases), find the latest release and download `linux-discord-rich-presence` asset from it.
-2. Move it to the `/bin/` and make it executable.
 
 ## Configuration
 
