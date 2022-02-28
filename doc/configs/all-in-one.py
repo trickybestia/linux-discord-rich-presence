@@ -9,6 +9,7 @@ def cmd(command):
     with popen(command) as process:
         return process.read()[0:-1]
 
+# Missing items behave as if they were None
 def update():
     return [{
         'application_id': 000000000000000000,
