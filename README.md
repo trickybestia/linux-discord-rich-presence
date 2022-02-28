@@ -1,14 +1,12 @@
 # linux-discord-rich-presence
 
-**Customizable Discord Rich Presence client for Linux**
-
----
+Customizable Discord Rich Presence client for Linux
 
 ## Showcase
 
-![](./doc/images/showcase_1.png)
+![Showcase 1](./doc/images/showcase_1.png)
 
-![](./doc/images/showcase_2.png)
+![Showcase 2](./doc/images/showcase_2.png)
 
 ## Features
 
@@ -31,6 +29,7 @@ yay -Syu linux-discord-rich-presence
 
 1. [Install Rust](https://rustup.rs/).
 2. Run the following shell script:
+
 ```sh
 git clone https://github.com/trickybestia/linux-discord-rich-presence.git
 cd linux-discord-rich-presence
@@ -54,6 +53,7 @@ Create `~/.config/linux-discord-rich-presencerc` from the [template](./doc/confi
 ## How to use
 
 Run the following command:
+
 ```sh
 linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc
 ```
