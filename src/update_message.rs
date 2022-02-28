@@ -21,29 +21,34 @@ use serde::Deserialize;
 
 pub type UpdateMessage = Vec<UpdateMessageItem>;
 
-#[derive(Deserialize, Default)]
-#[serde(default)]
+#[derive(Deserialize)]
 pub struct UpdateMessageItem {
     pub application_id: u64,
+    #[serde(default)]
     pub state: Option<String>,
+    #[serde(default)]
     pub details: Option<String>,
+    #[serde(default)]
     pub large_image: Option<Image>,
+    #[serde(default)]
     pub small_image: Option<Image>,
+    #[serde(default)]
     pub start_timestamp: Option<i64>,
+    #[serde(default)]
     pub end_timestamp: Option<i64>,
+    #[serde(default)]
     pub buttons: Vec<Button>,
 }
 
-#[derive(Deserialize, Default)]
-#[serde(default)]
+#[derive(Deserialize)]
 pub struct Button {
     pub label: String,
     pub url: String,
 }
 
-#[derive(Deserialize, Default)]
-#[serde(default)]
+#[derive(Deserialize)]
 pub struct Image {
     pub key: String,
+    #[serde(default)]
     pub text: Option<String>,
 }

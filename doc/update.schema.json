@@ -7,72 +7,46 @@
                 "type": "integer"
             },
             "state": {
-                "type": [
-                    "null",
-                    "string"
-                ]
+                "type": "string"
             },
             "details": {
-                "type": [
-                    "null",
-                    "string"
-                ]
+                "type": "string"
             },
             "large_image": {
-                "type": [
-                    "object",
-                    "null"
-                ],
+                "type": "object",
                 "properties": {
                     "key": {
                         "type": "string"
                     },
                     "text": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
+                        "type": "string"
                     }
                 },
                 "required": [
-                    "key",
-                    "text"
+                    "key"
                 ],
                 "additionalProperties": false
             },
             "small_image": {
-                "type": [
-                    "object",
-                    "null"
-                ],
+                "type": "object",
                 "properties": {
                     "key": {
                         "type": "string"
                     },
                     "text": {
-                        "type": [
-                            "null",
-                            "string"
-                        ]
+                        "type": "string"
                     }
                 },
                 "required": [
-                    "key",
-                    "text"
+                    "key"
                 ],
                 "additionalProperties": false
             },
             "start_timestamp": {
-                "type": [
-                    "null",
-                    "integer"
-                ]
+                "type": "integer"
             },
             "end_timestamp": {
-                "type": [
-                    "null",
-                    "integer"
-                ]
+                "type": "integer"
             },
             "buttons": {
                 "type": "array",
@@ -95,14 +69,7 @@
             }
         },
         "required": [
-            "application_id",
-            "state",
-            "details",
-            "large_image",
-            "small_image",
-            "start_timestamp",
-            "end_timestamp",
-            "buttons"
+            "application_id"
         ],
         "additionalProperties": false
     }
