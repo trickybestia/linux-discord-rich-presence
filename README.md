@@ -23,7 +23,7 @@ Customizable Discord Rich Presence client for Linux
 yay -Syu linux-discord-rich-presence
 ```
 
-### Manually
+### Manually compile from source
 
 1. [Install Rust](https://rustup.rs/).
 2. Run the following shell script:
