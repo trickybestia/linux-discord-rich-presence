@@ -13,8 +13,8 @@ def cmd(command):
 def update():
     return [{
         'application_id': 000000000000000000,
-        'state': cmd('uname -r'),
-        'details': cmd('uname -n'),
+        'state': cmd('uname -r'),   # If you want text here to show remove the cmd and brackets also -r or -n
+        'details': cmd('uname -n'), # same here 
         'large_image': {'key': 'some_image', 'text': None},
         'small_image': None,
         'start_timestamp': int(cmd('date -d "$(uptime -s)" +%s')),
