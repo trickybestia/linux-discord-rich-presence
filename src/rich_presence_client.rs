@@ -21,26 +21,28 @@ use std::error::Error;
 
 use discord_rich_presence::{
     activity::{Activity, Assets, Button, Timestamps},
-    new_client, DiscordIpc,
+    DiscordIpc, DiscordIpcClient,
 };
 
 use crate::update_message::UpdateMessageItem;
 
 pub struct RichPresenceClient {
-    client: Box<dyn DiscordIpc>,
+    client: DiscordIpcClient,
 }
 
 impl RichPresenceClient {
     pub fn new(application_id: u64) -> Result<Self, Box<dyn Error>> {
-        let mut client =
-            Box::new(new_client(&application_id.to_string()).unwrap()) as Box<dyn DiscordIpc>;
+        let mut client = DiscordIpcClient::new(&application_id.to_string())?;
 
         client.connect()?;
 
         Ok(Self { client })
     }
 
-    pub async fn set_activity(&mut self, message: &UpdateMessageItem) -> Result<(), Box<dyn Error>> {
+    pub async fn set_activity(
+        &mut self,
+        message: &UpdateMessageItem,
+    ) -> Result<(), Box<dyn Error>> {
         let mut timestamps = Timestamps::new();
         let mut assets = Assets::new();
         let mut activity = Activity::new();

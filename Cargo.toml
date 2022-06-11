@@ -9,11 +9,11 @@ edition = "2021"
 strip = true
 
 [dependencies]
-discord-rich-presence = "0.1"
+discord-rich-presence = "0.2"
 clap = { version = "3", features = ["derive"] }
 log = "0.4"
-simplelog = "0.10"
-tokio = { version = "1.12", features = ["rt", "macros", "time", "process", "io-util"] }
+simplelog = "0.12"
+tokio = { version = "1.19", features = ["rt", "macros", "time", "process", "io-util"] }
 notify = "4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
