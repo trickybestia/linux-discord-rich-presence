@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Discord (linux-discord-rich-presence)
+StartupWMClass=discord
+Comment=All-in-one voice and text chat for gamers that's free, secure, and works on both your desktop and phone.
+GenericName=Internet Messenger
+Exec=/usr/bin/sh -c '/usr/bin/linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc & /usr/bin/discord && kill -TERM `pidof linux-discord-rich-presence`'
+Icon=discord
+Type=Application
+Categories=Network;InstantMessaging;
+Path=/usr/bin

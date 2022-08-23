@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 
 import json
 from os import popen
@@ -13,7 +13,8 @@ def cmd(command):
 def update():
     return [{
         'application_id': 000000000000000000,
-        'state': cmd('uname -r'),   # Use `cmd('command_to_run')` if you want to run command like in terminal and show it's result, otherwise if you want text here to show remove the cmd and brackets also -r or -n
+        'state': cmd('uname -r'),   # Use `cmd('command_to_run')` if you want to run command like in terminal and show it's result, otherwise if you want show text here comment this line andd uncomment next:
+        # 'state': 'Your text',
         'details': cmd('uname -n'), # same here 
         'large_image': {'key': 'some_image', 'text': None},
         'small_image': None,

@@ -32,21 +32,20 @@ yay -Syu linux-discord-rich-presence
 git clone https://github.com/trickybestia/linux-discord-rich-presence.git
 cd linux-discord-rich-presence
 cargo build --release
-sudo mv -f ./target/release/linux-discord-rich-presence /bin/linux-discord-rich-presence
-cd ..
-rm -rf ./linux-discord-rich-presence
+sudo install -Dm0755 -t /usr/bin/ ./target/release/linux-discord-rich-presence
+sudo install -Dm0644 -t /usr/share/applications/ ./doc/linux-discord-rich-presence.desktop
 ```
 
 ## Configuration
 
-Create `~/.config/linux-discord-rich-presencerc` from the [template](./doc/configs/all-in-one.py) and make it executable. IT IS JUST TEMPLATE. To make it working see [configuration guide](./doc/configuration.md).
+Create `~/.config/linux-discord-rich-presencerc` from [one of the templates](./doc/configs/) and make it executable. THEY ARE JUST TEMPLATES. To make them work see [configuration guide](./doc/configuration.md).
 
 ## How to use
 
-Run the following command:
+Choose `Discord (linux-discord-rich-presence)` entry in your application launcher or run the following command:
 
 ```sh
 linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc
 ```
 
-You also can add this command to autostart in your DE settings.
+You also can add this command or .desktop file to autostart in your DE settings.

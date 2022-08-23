@@ -1,0 +1,20 @@
+[
+    {
+        "application_id": 0,
+        "state": "Your state",
+        "details": "Your details",
+        "large_image": {
+            "key": "some_image",
+            "text": null
+        },
+        "small_image": null,
+        "start_timestamp": null,
+        "end_timestamp": null,
+        "buttons": [
+            {
+                "label": "some_button",
+                "url": "https://example.com/"
+            }
+        ]
+    }
+]
