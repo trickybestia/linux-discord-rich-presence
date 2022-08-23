@@ -76,7 +76,7 @@ impl RichPresenceConfig {
             }
         }
 
-        error!("Config Process' stdout was closed (it died?). Showing last sent activity.");
+        info!("Config Process' stdout was closed (it died?). Showing last sent activity.");
     }
 
     async fn run(path: PathBuf, updates_sender: tokio::sync::mpsc::Sender<UpdateMessage>) {
