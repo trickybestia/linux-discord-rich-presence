@@ -1,6 +1,6 @@
 # Changelog
 
-## v3.0.0 (2021-02-28)
+## v3.0.0 (2022-02-28)
 
 * Configuration protocol was reviewed and changed.
 
