@@ -1,5 +1,5 @@
 /*
-    Copyright © 2021 trickybestia <trickybestia@gmail.com>
+    Copyright © 2021-2022 trickybestia <trickybestia@gmail.com>
 
     This file is part of linux-discord-rich-presence.
 
