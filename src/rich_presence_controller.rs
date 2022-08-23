@@ -52,7 +52,7 @@ impl RichPresenceController {
             };
 
             client
-                .set_activity(&item)
+                .set_activity(item)
                 .await
                 .map_err(|err| UpdateError::ActivitySetting(err))?;
 

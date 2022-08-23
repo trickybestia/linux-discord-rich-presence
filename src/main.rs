@@ -17,102 +17,58 @@
     along with linux-discord-rich-presence.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+mod process_wrapper;
 mod rich_presence_client;
+mod rich_presence_config;
 mod rich_presence_controller;
-mod shell;
 mod update_message;
 
-use std::{
-    path::PathBuf,
-    sync::{
-        mpsc::{channel, Receiver},
-        Arc,
-    },
-    time::Duration,
-};
+use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
 use lazy_static::lazy_static;
-use log::{error, info, warn};
-use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
-use serde_json::from_str;
+use log::{info, warn};
+use rich_presence_config::RichPresenceConfig;
 use simplelog::{ColorChoice, ConfigBuilder, LevelFilter, TermLogger, TerminalMode};
 use tokio::{
-    task::{self, LocalSet},
-    time::sleep,
+    sync::mpsc::{channel, Receiver},
+    time::timeout,
 };
 
-use crate::{
-    rich_presence_controller::RichPresenceController, shell::Shell, update_message::UpdateMessage,
-};
+use crate::{rich_presence_controller::RichPresenceController, update_message::UpdateMessage};
 
 lazy_static! {
-    static ref RECONNECT_DELAY: Duration = Duration::from_secs(10);
+    static ref UPDATE_DELAY: Duration = Duration::from_secs(10);
 }
 
-async fn wait_for_change(rx: Receiver<DebouncedEvent>) -> Receiver<DebouncedEvent> {
-    loop {
-        if let Ok(DebouncedEvent::Write(_)) = rx.try_recv() {
-            break;
-        }
-
-        sleep(Duration::from_secs(1)).await;
-    }
-
-    rx
-}
-
-async fn process_rich_presence(mut config_shell: Shell) {
+async fn process_rich_presence(mut updates_receiver: Receiver<UpdateMessage>) {
     let mut controller = RichPresenceController::new();
     let mut is_connected = false;
-    let mut buf = String::new();
+    let mut last_message = UpdateMessage::new();
 
-    while {
-        if let Ok(n) = config_shell.read_line(&mut buf).await {
-            n != 0
-        } else {
-            false
+    loop {
+        let message = timeout(*UPDATE_DELAY, updates_receiver.recv()).await;
+
+        match message {
+            Ok(Some(message)) => last_message = message,
+            _ => (),
         }
-    } {
-        match from_str::<UpdateMessage>(&buf) {
-            Ok(message) => loop {
-                match controller.update(&message).await {
-                    Ok(()) => {
-                        if !is_connected {
-                            is_connected = true;
 
-                            info!("Connected to Discord!");
-                        }
+        match controller.update(&last_message).await {
+            Ok(()) => {
+                if !is_connected {
+                    is_connected = true;
 
-                        break;
-                    }
-                    Err(err) => {
-                        is_connected = false;
-
-                        warn!(
-                            "{} Retrying after {} seconds.",
-                            err,
-                            RECONNECT_DELAY.as_secs()
-                        );
-
-                        sleep(*RECONNECT_DELAY).await;
-                    }
+                    info!("Connected to Discord!");
                 }
-            },
+            }
             Err(err) => {
                 is_connected = false;
 
-                error!(
-                    "Error while parsing config response: `{}`. Received value: `{}`.",
-                    err, buf
-                );
+                warn!("{} Retrying after {} seconds.", err, UPDATE_DELAY.as_secs());
             }
         }
-
-        buf.clear();
     }
-
-    error!("Config Process' stdout was closed (it died?). Clearing all Rich Presence activities.");
 }
 
 #[derive(Parser)]
@@ -136,26 +92,9 @@ async fn main() {
     )
     .unwrap();
 
-    let local = LocalSet::new();
-    let args = Arc::new(Args::parse());
-    let (tx, mut rx) = channel();
-    let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(1)).unwrap();
+    let args = Args::parse();
+    let (tx, rx) = channel(10);
+    let _config = RichPresenceConfig::new(args.config, tx);
 
-    watcher
-        .watch(args.config.as_path(), RecursiveMode::NonRecursive)
-        .unwrap();
-
-    local
-        .run_until(async {
-            loop {
-                let shell = Shell::new(args.config.as_path()).await;
-                let task = task::spawn_local(async move { process_rich_presence(shell).await });
-
-                rx = wait_for_change(rx).await;
-
-                task.abort();
-                info!("Config file was changed! Restarting...");
-            }
-        })
-        .await;
+    process_rich_presence(rx).await;
 }

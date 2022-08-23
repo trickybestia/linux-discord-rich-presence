@@ -20,23 +20,23 @@
 use std::{ffi::OsStr, process::Stdio};
 
 use tokio::{
-    io::{self, AsyncBufReadExt, BufReader},
+    io::{self, AsyncBufReadExt, BufReader, Lines},
     process::{Child, ChildStdout, Command},
 };
 
-pub struct Shell {
+pub struct ProcessWrapper {
     process: Child,
-    stdout_reader: BufReader<ChildStdout>,
+    stdout_lines: Lines<BufReader<ChildStdout>>,
 }
 
 #[allow(unused_must_use)]
-impl Drop for Shell {
+impl Drop for ProcessWrapper {
     fn drop(&mut self) {
         self.process.kill();
     }
 }
 
-impl Shell {
+impl ProcessWrapper {
     pub async fn new<S>(program: S) -> Self
     where
         S: AsRef<OsStr>,
@@ -47,12 +47,12 @@ impl Shell {
             .unwrap();
 
         Self {
-            stdout_reader: BufReader::new(process.stdout.take().unwrap()),
+            stdout_lines: BufReader::new(process.stdout.take().unwrap()).lines(),
             process,
         }
     }
 
-    pub async fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
-        self.stdout_reader.read_line(buf).await
+    pub async fn read_line(&mut self) -> io::Result<Option<String>> {
+        self.stdout_lines.next_line().await
     }
 }
