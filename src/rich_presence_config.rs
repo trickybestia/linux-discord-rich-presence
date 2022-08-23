@@ -17,23 +17,68 @@
     along with linux-discord-rich-presence.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::{path::PathBuf, time::Duration};
+use std::{
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
+use is_executable::is_executable;
 use log::{error, info};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use serde_json::from_str;
 use tokio::{
-    select,
+    fs::read_to_string,
+    spawn,
     task::{spawn_blocking, JoinHandle},
 };
 
 use crate::{process_wrapper::ProcessWrapper, update_message::UpdateMessage};
+
+async fn load_config<S>(path: S) -> Option<UpdateMessage>
+where
+    S: AsRef<Path>,
+{
+    match read_to_string(path).await {
+        Ok(config) => match from_str::<UpdateMessage>(&config) {
+            Ok(message) => return Some(message),
+            Err(err) => error!(
+                "Error while parsing config file: `{}`. Config: `{}`.",
+                err, config
+            ),
+        },
+        Err(err) => error!("Error while reading config file: `{}`.", err),
+    }
+
+    None
+}
 
 pub struct RichPresenceConfig {
     task: JoinHandle<()>,
 }
 
 impl RichPresenceConfig {
+    async fn read(path: PathBuf, updates_sender: tokio::sync::mpsc::Sender<UpdateMessage>) {
+        let mut process = ProcessWrapper::new(path).await;
+
+        while let Ok(Some(line)) = process.read_line().await {
+            match from_str::<UpdateMessage>(&line) {
+                Ok(message) => {
+                    if updates_sender.send(message).await.is_err() {
+                        break;
+                    }
+                }
+                Err(err) => {
+                    error!(
+                        "Error while parsing config response: `{}`. Received value: `{}`.",
+                        err, line
+                    );
+                }
+            }
+        }
+
+        error!("Config Process' stdout was closed (it died?). Showing last sent activity.");
+    }
+
     async fn run(path: PathBuf, updates_sender: tokio::sync::mpsc::Sender<UpdateMessage>) {
         let (tx, rx) = std::sync::mpsc::channel();
         let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(1)).unwrap();
@@ -41,7 +86,7 @@ impl RichPresenceConfig {
         watcher.watch(&path, RecursiveMode::NonRecursive).unwrap();
 
         let mut watcher_task;
-        let mut process;
+        let mut _reader_task;
 
         macro_rules! reload_config {
             ($watcher_rx:ident) => {
@@ -54,44 +99,28 @@ impl RichPresenceConfig {
                     $watcher_rx
                 });
 
-                process = ProcessWrapper::new(&path).await;
+                if is_executable(&path) {
+                    _reader_task = Some(spawn(Self::read(path.clone(), updates_sender.clone())));
+                } else {
+                    _reader_task = None;
+
+                    if let Some(message) = load_config(&path).await {
+                        if updates_sender.send(message).await.is_err() {
+                            return;
+                        }
+                    }
+                }
             };
         }
 
         reload_config!(rx);
 
         loop {
-            select! {
-                returned_rx = &mut watcher_task => {
-                    info!("Config file was changed! Restarting...");
+            let returned_rx = watcher_task.await.unwrap();
 
-                    let returned_rx = returned_rx.unwrap();
+            info!("Config file was changed! Restarting...");
 
-                    reload_config!(returned_rx);
-                },
-                line = process.read_line() => {
-                    match line {
-                        Ok(Some(line)) => {
-                            match from_str::<UpdateMessage>(&line) {
-                                Ok(message) => {
-                                    if updates_sender.send(message).await.is_err() {
-                                        break;
-                                    }
-                                },
-                                Err(err) => {
-                                    error!(
-                                        "Error while parsing config response: `{}`. Received value: `{}`.",
-                                        err, line
-                                    );
-                                }
-                            }
-                        }
-                        _ => {
-                            error!("Config Process' stdout was closed (it died?). Showing last sent activity.");
-                        }
-                    }
-                },
-            }
+            reload_config!(returned_rx);
         }
     }
 
