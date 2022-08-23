@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.1.0 (2022-08-23)
+
+* Added support for static JSON configs.
+* Now linux-discord-rich-presence attempts to update user's activities every 10 seconds. It leads to faster reconnection time when connection to Discord is lost.
+
 ## v3.0.0 (2022-02-28)
 
 * Configuration protocol was reviewed and changed.
