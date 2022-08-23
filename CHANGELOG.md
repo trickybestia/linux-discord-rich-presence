@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.1.1 (2022-08-23)
+
+* Fix shell config template.
+
 ## v3.1.0 (2022-08-23)
 
 * Added support for static JSON configs.
