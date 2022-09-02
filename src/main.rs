@@ -49,9 +49,8 @@ async fn process_rich_presence(mut updates_receiver: Receiver<UpdateMessage>) {
     loop {
         let message = timeout(*UPDATE_DELAY, updates_receiver.recv()).await;
 
-        match message {
-            Ok(Some(message)) => last_message = message,
-            _ => (),
+        if let Ok(Some(message)) = message {
+            last_message = message;
         }
 
         match controller.update(&last_message).await {
