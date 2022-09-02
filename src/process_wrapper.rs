@@ -25,15 +25,8 @@ use tokio::{
 };
 
 pub struct ProcessWrapper {
-    process: Child,
+    _process: Child,
     stdout_lines: Lines<BufReader<ChildStdout>>,
-}
-
-#[allow(unused_must_use)]
-impl Drop for ProcessWrapper {
-    fn drop(&mut self) {
-        self.process.kill();
-    }
 }
 
 impl ProcessWrapper {
@@ -42,13 +35,14 @@ impl ProcessWrapper {
         S: AsRef<OsStr>,
     {
         let mut process = Command::new(program)
+            .kill_on_drop(true)
             .stdout(Stdio::piped())
             .spawn()
             .unwrap();
 
         Self {
             stdout_lines: BufReader::new(process.stdout.take().unwrap()).lines(),
-            process,
+            _process: process,
         }
     }
 
