@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.2 (2022-10-11)
+
+* Fix bug with config processes not being closed after config file update.
+
 ## v3.1.1 (2022-08-23)
 
 * Fix shell config template.
