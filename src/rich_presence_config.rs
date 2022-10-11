@@ -17,20 +17,13 @@
     along with linux-discord-rich-presence.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::{
-    path::{Path, PathBuf},
-    time::Duration,
-};
+use std::path::{Path, PathBuf};
 
 use is_executable::is_executable;
 use log::{error, info};
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{event::AccessKind, Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde_json::from_str;
-use tokio::{
-    fs::read_to_string,
-    spawn,
-    task::{spawn_blocking, JoinHandle},
-};
+use tokio::{fs::read_to_string, spawn, sync::mpsc, task::JoinHandle};
 
 use crate::{process_wrapper::ProcessWrapper, update_message::UpdateMessage};
 
@@ -80,47 +73,47 @@ impl RichPresenceConfig {
     }
 
     async fn run(path: PathBuf, updates_sender: tokio::sync::mpsc::Sender<UpdateMessage>) {
-        let (tx, rx) = std::sync::mpsc::channel();
-        let mut watcher: RecommendedWatcher = Watcher::new(tx, Duration::from_secs(1)).unwrap();
+        let (tx, mut rx) = mpsc::channel(10);
+        let mut watcher = RecommendedWatcher::new(
+            move |event: notify::Result<notify::Event>| {
+                let event = event.unwrap();
+
+                if let EventKind::Access(AccessKind::Close(_)) = event.kind {
+                    tx.blocking_send(()).unwrap();
+                }
+            },
+            Config::default(),
+        )
+        .unwrap();
 
         watcher.watch(&path, RecursiveMode::NonRecursive).unwrap();
 
-        let mut watcher_task;
-        let mut _reader_task;
+        let mut _reader_task: Option<JoinHandle<()>> = None;
 
         macro_rules! reload_config {
-            ($watcher_rx:ident) => {
-                watcher_task = spawn_blocking(move || {
-                    #[allow(unused_must_use)]
-                    {
-                        $watcher_rx.recv();
-                    }
-
-                    $watcher_rx
-                });
+            () => {
+                if let Some(_reader_task) = _reader_task.take() {
+                    _reader_task.abort();
+                }
 
                 if is_executable(&path) {
                     _reader_task = Some(spawn(Self::read(path.clone(), updates_sender.clone())));
-                } else {
-                    _reader_task = None;
-
-                    if let Some(message) = load_config(&path).await {
-                        if updates_sender.send(message).await.is_err() {
-                            return;
-                        }
+                } else if let Some(message) = load_config(&path).await {
+                    if updates_sender.send(message).await.is_err() {
+                        return;
                     }
                 }
             };
         }
 
-        reload_config!(rx);
+        reload_config!();
 
         loop {
-            let returned_rx = watcher_task.await.unwrap();
+            rx.recv().await;
 
             info!("Config file was changed! Restarting...");
 
-            reload_config!(returned_rx);
+            reload_config!();
         }
     }
 
