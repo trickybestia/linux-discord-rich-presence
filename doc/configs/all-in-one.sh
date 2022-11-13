@@ -1,6 +1,6 @@
 #!/usr/bin/sh
 
-cat <<EOF
+cat << EOF
 [ \
     { \
         "application_id": 0, \

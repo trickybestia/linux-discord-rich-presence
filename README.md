@@ -33,7 +33,9 @@ git clone https://github.com/trickybestia/linux-discord-rich-presence.git
 cd linux-discord-rich-presence
 cargo build --release
 sudo install -Dm0755 -t /usr/bin/ ./target/release/linux-discord-rich-presence
+sudo install -Dm0755 -t /usr/bin/ ./doc/linux-discord-rich-presence-desktop-wrapper
 sudo install -Dm0644 -t /usr/share/applications/ ./doc/linux-discord-rich-presence.desktop
+sudo install -Dm0644 -t /usr/share/applications/ ./doc/linux-discord-rich-presence-minimized.desktop
 ```
 
 ## Configuration
@@ -48,4 +50,4 @@ Choose `Discord (linux-discord-rich-presence)` entry in your application launche
 linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc
 ```
 
-You also can add this command or .desktop file to autostart in your DE settings.
+You also can add this command or `Discord (linux-discord-rich-presence) (minimized)` to autostart in your DE settings.

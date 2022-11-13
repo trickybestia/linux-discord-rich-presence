@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 
 while true; do
-    cat <<EOF
+    cat << EOF
 [ \
     { \
         "application_id": 0, \

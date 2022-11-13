@@ -1,0 +1,13 @@
+#!/usr/bin/sh
+
+RUNNING_PID=`pidof linux-discord-rich-presence`
+
+if [ "$RUNNING_PID" = "" ]; then
+    /usr/bin/linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc &
+fi
+
+/usr/bin/discord "$1"
+
+if [ "$RUNNING_PID" = "" ]; then
+    kill %1
+fi
