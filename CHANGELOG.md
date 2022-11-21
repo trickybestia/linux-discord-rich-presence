@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.3 (2022-11-21)
+
+* Add `Discord (linux-discord-rich-presence) (minimized)` desktop entry.
+* Change shebang in Python config template to be less distro-specific.
+
 ## 3.1.2 (2022-10-11)
 
 * Fix bug with config processes not being closed after config file update.
