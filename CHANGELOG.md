@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.0 (2023-02-21)
+
+* Add support for showing party size.
+
 ## 3.1.3 (2022-11-21)
 
 * Add `Discord (linux-discord-rich-presence) (minimized)` desktop entry.
