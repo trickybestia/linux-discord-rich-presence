@@ -18,7 +18,8 @@ cat << EOF
                 "label": "some_button", \
                 "url": "https://example.com/" \
             } \
-        ] \
+        ], \
+        "party": [1, 3] \
     } \
 ]
 EOF

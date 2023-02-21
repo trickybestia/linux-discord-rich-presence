@@ -67,6 +67,14 @@
                     ],
                     "additionalProperties": false
                 }
+            },
+            "party": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                    "type": "integer"
+                }
             }
         },
         "required": [

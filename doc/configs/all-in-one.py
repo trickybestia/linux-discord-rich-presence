@@ -23,6 +23,7 @@ def update():
         'buttons': [{'label': 'some_button',
                     'url': 'https://example.com/'
                      }],
+        'party': [1, 3], # 'party': [current party size, max party size],
     }]
 
 while True:

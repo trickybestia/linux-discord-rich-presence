@@ -38,6 +38,8 @@ pub struct UpdateMessageItem {
     pub end_timestamp: Option<i64>,
     #[serde(default)]
     pub buttons: Vec<Button>,
+    #[serde(default)]
+    pub party: Option<[i32; 2]>,
 }
 
 #[derive(Deserialize)]

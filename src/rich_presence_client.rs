@@ -20,7 +20,7 @@
 use std::error::Error;
 
 use discord_rich_presence::{
-    activity::{Activity, Assets, Button, Timestamps},
+    activity::{Activity, Assets, Button, Party, Timestamps},
     DiscordIpc, DiscordIpcClient,
 };
 
@@ -47,6 +47,7 @@ impl RichPresenceClient {
         let mut assets = Assets::new();
         let mut activity = Activity::new();
         let mut buttons = Vec::new();
+        let mut party = Party::new();
 
         if let Some(state) = &message.state {
             activity = activity.state(state.as_str());
@@ -77,6 +78,10 @@ impl RichPresenceClient {
             timestamps = timestamps.start(end_timestamp);
         }
 
+        if let Some(party_size) = message.party {
+            party = party.size(party_size);
+        }
+
         if !message.buttons.is_empty() {
             for button in &message.buttons {
                 buttons.push(Button::new(button.label.as_str(), button.url.as_str()));
@@ -85,7 +90,7 @@ impl RichPresenceClient {
             activity = activity.buttons(buttons);
         }
 
-        activity = activity.assets(assets).timestamps(timestamps);
+        activity = activity.assets(assets).timestamps(timestamps).party(party);
 
         self.client.set_activity(activity)?;
 
