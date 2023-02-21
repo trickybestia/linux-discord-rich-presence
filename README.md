@@ -10,7 +10,7 @@ Customizable Discord Rich Presence client for Linux
 
 ## Features
 
-* Set Discord Rich Presence Activity's state, details, large image, large image hover text, small image, small image hover text, start and end timestamps.
+* Set Discord Rich Presence Activity's state, details, large image, large image hover text, small image, small image hover text, current and max party size, start and end timestamps.
 * Use any count of Rich Presence statuses.
 * Config file in any format.
 * Dynamic config file reloading.
