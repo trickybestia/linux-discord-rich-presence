@@ -29,13 +29,11 @@ EOF
 
     pids="$(pidof code) $(pidof wineserver)" # for example; you can put your own processes here
 
-    if [ "${#pids}" != 0 ]; then
+    if [ ! -z "${pids// }" ]; then
         echo "[]"
 
         for pid in $pids; do
-            if [ -d "/proc/$pid" ]; then # if process haven't exited yet
-                tail --pid=$pid -f /dev/null # wait for process to exit
-            fi
+            tail --pid=$pid -f /dev/null # wait for process to exit
         done
     fi
 done
