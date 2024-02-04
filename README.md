@@ -51,3 +51,7 @@ linux-discord-rich-presence -c ~/.config/linux-discord-rich-presencerc
 ```
 
 You also can add this command or `Discord (linux-discord-rich-presence) (minimized)` to autostart in your DE settings.
+
+## License
+
+Licensed under [GNU GPLv3](COPYING) only.
