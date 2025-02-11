@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.1 (2025-02-11)
+
+* Update dependencies.
+
 ## 3.2.0 (2023-02-21)
 
 * Add support for showing party size.
