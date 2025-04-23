@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.2 (2025-04-23)
+
+* Update dependencies.
+
 ## 3.2.1 (2025-02-11)
 
 * Update dependencies.
