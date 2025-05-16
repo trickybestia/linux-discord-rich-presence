@@ -24,7 +24,7 @@ yay -Syu linux-discord-rich-presence
 ### Manually compile from source
 
 1. [Install Rust](https://rustup.rs/).
-2. Run the following shell script:
+2. Run the following commands:
 
 ```sh
 git clone https://github.com/trickybestia/linux-discord-rich-presence.git
