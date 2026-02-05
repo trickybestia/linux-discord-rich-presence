@@ -2,7 +2,7 @@
 name = "linux-discord-rich-presence"
 description = "Customizable Discord Rich Presence client for Linux"
 authors = ["trickybestia <trickybestia@gmail.com>"]
-version = "3.2.2"
+version = "3.3.0"
 edition = "2021"
 
 [profile.release]

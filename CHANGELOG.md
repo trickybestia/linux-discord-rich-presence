@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.0 (2026-02-05)
+
+* Allow for total absence of party object *by demif1end*.
+
 ## 3.2.2 (2025-04-23)
 
 * Update dependencies.
