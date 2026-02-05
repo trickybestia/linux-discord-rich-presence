@@ -47,7 +47,6 @@ impl RichPresenceClient {
         let mut assets = Assets::new();
         let mut activity = Activity::new();
         let mut buttons = Vec::new();
-        let mut party = Party::new();
 
         if let Some(state) = &message.state {
             activity = activity.state(state.as_str());
@@ -79,7 +78,9 @@ impl RichPresenceClient {
         }
 
         if let Some(party_size) = message.party {
-            party = party.size(party_size);
+            let party = Party::new().size(party_size);
+
+            activity = activity.party(party);
         }
 
         if !message.buttons.is_empty() {
@@ -90,8 +91,7 @@ impl RichPresenceClient {
             activity = activity.buttons(buttons);
         }
 
-        activity = activity.assets(assets).timestamps(timestamps).party(party);
-
+        activity = activity.assets(assets).timestamps(timestamps);
         self.client.set_activity(activity)?;
 
         Ok(())
